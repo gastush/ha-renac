@@ -57,7 +57,9 @@ def setup_platform(
     emailSn = login(conf.get(CONF_USERNAME), conf.get(CONF_PASSWORD))
     updater = Updater(emailSn, conf.get(CONF_EQUIPSN))
     add_entities([PowerSensor(udpater, 'acPower'),
-        TodayPowerSensor(udpater, 'todayPower')])
+        TodayPowerSensor(udpater, 'todayPower'),
+        PVVoltageSensor(updater, 'PV1voltage', '1'),
+        PVVoltageSensor(updater, 'PV2voltage', '2')])
 
 def login(username, password):
     _LOGGER.info("Requesting authorization...")
@@ -106,28 +108,17 @@ class TodayPowerSensor(SensorEntity):
 
 
 class PVVoltageSensor(SensorEntity):
-    def __init__(self,emailSn,equipSn,pv):
-        self.emailSn = emailSn
-        self.equipSn = equipSn
+    def __init__(self, updater, field,pv):
+        self.udpater = updater
+        self.field = field
         self.pv = pv
-        self._attr_name = "PV " + pv + " Voltage" 
+        self._attr_name = "PV" + pv + " Voltage" 
         self._attr_native_unit_of_measurement = "V" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def name(self):
-        return "Renac PV " + self.pv + " Voltage"
+        return "Renac PV" + self.pv + " Voltage"
 
     def update(self) -> None:
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        req_json = {
-            "sn": self.equipSn,
-            "email": self.emailSn
-        }
-        r = requests.post(API_ROOT+'equipDetail', json=req_json)
-        if r.status_code == 200:
-            self._attr_native_value = r.json()['results']['PV1voltage']
-        else:
-            raise("Failed to update sensor " + str(r.status_code))
+        self._attr_native_value = updater.fetch(field)
