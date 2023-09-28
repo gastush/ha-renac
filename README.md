@@ -15,6 +15,10 @@ renac:
 To date, the following sensors are supporter :
 - AC generated power (W)
 - Today's total generated power (kWh)
-- PV 1 Voltage (V)
-- PV 2 Voltage (V)
-
+- PV 1,2 Voltage (V)
+- PV 1,2 Current (A)
+- PV 1,2 Power (W)
+- R,S,T Voltage (V)
+- R,S,T Current (A)
+- R,S,T Power (W)
+- Total generated power (kWh)
