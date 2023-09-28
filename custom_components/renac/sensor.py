@@ -95,7 +95,7 @@ class EnergySensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
-        self.name = name
+        self.display_name = name
         self._attr_name = name + "_Power"
         self._attr_native_unit_of_measurement = "W" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -103,7 +103,7 @@ class EnergySensor(SensorEntity):
     
     @property
     def name(self):
-        return "Renac " + self.name + " Power"
+        return "Renac " + self.display_name + " Power"
     
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
@@ -112,14 +112,14 @@ class PowerSensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
-        self.name = name
+        self.display_name = name
         self._attr_name = name + " Power"
         self._attr_native_unit_of_measurement = "kWh" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def name(self):
-        return "Renac " + self.name + " Generated Power"
+        return "Renac " + self.display_name + " Generated Power"
     
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
@@ -129,14 +129,14 @@ class VoltageSensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
-        self.name = name
+        self.display_name = name
         self._attr_name = name + " Voltage" 
         self._attr_native_unit_of_measurement = "V" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def name(self):
-        return "Renac " + self.name + " Voltage"
+        return "Renac " + self.display_name + " Voltage"
 
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
@@ -145,14 +145,14 @@ class CurrentSensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
-        self.name = name
+        self.display_name = name
         self._attr_name =  name + " Current" 
         self._attr_native_unit_of_measurement = "A" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def name(self):
-        return "Renac " + self.name + " Current"
+        return "Renac " + self.display_name + " Current"
 
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
