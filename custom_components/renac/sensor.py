@@ -71,10 +71,7 @@ def setup_platform(
         VoltageSensor(updater, 'Tvoltage', 'T'),
         CurrentSensor(updater, 'Rcurrent', 'R'),
         CurrentSensor(updater, 'Scurrent', 'S'),
-        CurrentSensor(updater, 'Tcurrent', 'T'),
-        EnergySensor(updater, 'Rpower', 'R'),
-        EnergySensor(updater, 'Spower', 'S'),
-        EnergySensor(updater, 'Tpower', 'T')
+        CurrentSensor(updater, 'Tcurrent', 'T')
         ])
 
 def login(username, password):
