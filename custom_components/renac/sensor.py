@@ -15,13 +15,20 @@ import logging
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "renac"
+from .const import CONF_USERNAME, CONF_PASSWORD, CONF_EQUIPSN, DOMAIN, API_ROOT
 
-CONF_USERNAME = "username"
-CONF_PASSWORD = "password"
-CONF_EQUIPSN = "equipment_serial"
+SCAN_INTERVAL = timedelta(seconds=10)
 
-API_ROOT = "http://153.le-pv.com:8082/api/"
+CONFIG_SCHEMA = vol.Schema(
+	{
+		DOMAIN: vol.Schema({
+			vol.Required(CONF_USERNAME): cv.string,
+			vol.Required(CONF_PASSWORD): cv.string,
+			vol.Required(CONF_EQUIPSN): cv.string
+			})
+	},
+	extra=vol.ALLOW_EXTRA,
+)
 
 class Updater():
     def __init__(self, emailSn, equipSn):
@@ -44,6 +51,34 @@ class Updater():
                 raise("Failed to update sensor " + str(r.status_code))
 
         return self.data[field]
+
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+):
+    """Setup sensors from a config entry created in the integrations UI."""
+    config = hass.data[DOMAIN][config_entry.entry_id]
+    # Update our config to include new repos and remove those that have been removed.
+    if config_entry.options:
+        config.update(config_entry.options)
+    session = async_get_clientsession(hass)
+    github = GitHubAPI(session, "requester", oauth_token=config[CONF_ACCESS_TOKEN])
+    sensors = [GitHubRepoSensor(github, repo) for repo in config[CONF_REPOS]]
+    async_add_entities(sensors, update_before_add=True)
+
+
+async def async_setup_platform(
+    hass: HomeAssistantType,
+    config: ConfigType,
+    async_add_entities: Callable,
+    discovery_info: Optional[DiscoveryInfoType] = None,
+) -> None:
+    """Set up the sensor platform."""
+    session = async_get_clientsession(hass)
+    github = GitHubAPI(session, "requester", oauth_token=config[CONF_ACCESS_TOKEN])
+    sensors = [GitHubRepoSensor(github, repo) for repo in config[CONF_REPOS]]
+    async_add_entities(sensors, update_before_add=True)
 
 def setup_platform(
     hass: HomeAssistant,

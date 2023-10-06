@@ -1,0 +1,18 @@
+{
+    "config": {
+      "error": {
+        "auth": "The credentials provided are not valid."
+      },
+      "step": {
+        "user": {
+          "data": {
+            "username": "Username",
+            "password": "Password",
+            "serial": "Inverter Serial number"
+          },
+          "description": "Enter your Renac credentials and inverter serial number",
+          "title": "Configuration"
+        }
+      }
+    }
+  }
