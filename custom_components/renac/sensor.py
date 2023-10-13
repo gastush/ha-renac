@@ -71,7 +71,10 @@ def setup_platform(
         VoltageSensor(updater, 'Tvoltage', 'T'),
         CurrentSensor(updater, 'Rcurrent', 'R'),
         CurrentSensor(updater, 'Scurrent', 'S'),
-        CurrentSensor(updater, 'Tcurrent', 'T')
+        CurrentSensor(updater, 'Tcurrent', 'T'),
+        FrequencySensor(updater, 'Rfrequency', 'R'),
+        FrequencySensor(updater, 'Sfrequency', 'S'),
+        FrequencySensor(updater, 'Tfrequency', 'T')
         ])
 
 def login(username, password):
@@ -150,6 +153,22 @@ class CurrentSensor(SensorEntity):
     @property
     def name(self):
         return "Renac " + self.display_name + " Current"
+
+    def update(self) -> None:
+        self._attr_native_value = self.updater.fetch(self.field)
+
+class FrequencySensor(SensorEntity):
+    def __init__(self, updater, field, name):
+        self.updater = updater
+        self.field = field
+        self.display_name = name
+        self._attr_name =  name + " Frequency" 
+        self._attr_native_unit_of_measurement = "Hz" 
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def name(self):
+        return "Renac " + self.display_name + " Frequency"
 
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
