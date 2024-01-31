@@ -24,9 +24,10 @@ CONF_EQUIPSN = "equipment_serial"
 API_ROOT = "https://sec.bg.renacpower.cn:8084/api/"
 
 class Updater():
-    def __init__(self, emailSn, equipSn):
+    def __init__(self, emailSn, equipSn, token):
         self.emailSn = emailSn
         self.equipSn = equipSn
+        self.token = token
         self.data = {}
         self.lastUpdate = 0
 
@@ -36,7 +37,8 @@ class Updater():
                 "sn": self.equipSn,
                 "email": self.emailSn
             }
-            r = requests.post(API_ROOT+'equipDetail', json=req_json)
+            headers = { "Token" : self.token }
+            r = requests.post(API_ROOT+'equipDetail', json=req_json, headers=headers)
             if r.status_code == 200:
                 self.lastUpdate = time.time()
                 self.data = r.json()['results']
@@ -54,8 +56,8 @@ def setup_platform(
     """Set up the sensor platform."""
     _LOGGER.info("Init...")
     conf = hass.data[DOMAIN]
-    emailSn = login(conf.get(CONF_USERNAME), conf.get(CONF_PASSWORD))
-    updater = Updater(emailSn, conf.get(CONF_EQUIPSN))
+    loginResponse = login(conf.get(CONF_USERNAME), conf.get(CONF_PASSWORD))
+    updater = Updater(loginResponse['email'], conf.get(CONF_EQUIPSN), loginResponse['Token'])
     add_entities([
         EnergySensor(updater, 'acPower', 'Generated'),
         PowerSensor(updater, 'todayPower', "Today's"),
@@ -86,7 +88,7 @@ def login(username, password):
     r = requests.post(API_ROOT+'login', json=req_json)
     if r.status_code == 200:
         _LOGGER.info("Got email id :" + str(r.json()['email']))
-        return r.json()['email']
+        return r.json()
     else:
         _LOGGER.error("Failed to login to renac : " + str(r.json()))
         raise("Failed to login")
