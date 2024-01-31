@@ -4,6 +4,6 @@
   "codeowners": ["ghelin"],
   "documentation": "https://github.com/gastush/ha-renac",
   "iot_class": "cloud_polling",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "loggers": ["custom_components.renac"]
 }
