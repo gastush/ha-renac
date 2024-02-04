@@ -24,14 +24,21 @@ CONF_EQUIPSN = "equipment_serial"
 API_ROOT = "https://sec.bg.renacpower.cn:8084/api/"
 
 class Updater():
-    def __init__(self, emailSn, equipSn, token):
-        self.emailSn = emailSn
-        self.equipSn = equipSn
-        self.token = token
+    def __init__(self, conf):
+        self.config = conf
+        self.emailSn = None
+        self.equipSn = None
+        self.token = None
         self.data = {}
         self.lastUpdate = 0
 
     def fetch(self, field):
+        if self.token == None:
+            _LOGGER.info("Token is null, new fresh login sequence required")
+            loginResponse = login(self.config.get(CONF_USERNAME), self.config.get(CONF_PASSWORD))
+            self.emailSn = loginResponse['email']
+            self.equipSn = self.config.get(CONF_EQUIPSN)
+            self.token = loginResponse['Token']
         if self.lastUpdate + 10 < time.time():
             req_json = {
                 "sn": self.equipSn,
@@ -40,8 +47,12 @@ class Updater():
             headers = { "Token" : self.token }
             r = requests.post(API_ROOT+'equipDetail', json=req_json, headers=headers)
             if r.status_code == 200:
-                self.lastUpdate = time.time()
-                self.data = r.json()['results']
+                if r.json()['results'] != "null":
+                    self.lastUpdate = time.time()
+                    self.data = r.json()['results']
+                else:
+                    _LOGGER.info("Null results. assuming a new Token is required.")
+                    self.token = None
             else:
                 raise("Failed to update sensor " + str(r.status_code))
 
@@ -56,8 +67,7 @@ def setup_platform(
     """Set up the sensor platform."""
     _LOGGER.info("Init...")
     conf = hass.data[DOMAIN]
-    loginResponse = login(conf.get(CONF_USERNAME), conf.get(CONF_PASSWORD))
-    updater = Updater(loginResponse['email'], conf.get(CONF_EQUIPSN), loginResponse['Token'])
+    updater = Updater(conf)
     add_entities([
         EnergySensor(updater, 'acPower', 'Generated'),
         PowerSensor(updater, 'todayPower', "Today's"),
