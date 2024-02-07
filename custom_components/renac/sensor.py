@@ -9,6 +9,7 @@ from homeassistant.components.sensor import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from datetime import datetime
 import time
 import requests
 import logging
@@ -27,17 +28,19 @@ class Updater():
     def __init__(self, conf):
         self.config = conf
         self.emailSn = None
-        self.equipSn = None
+        self.equipSn = self.config.get(CONF_EQUIPSN)
         self.token = None
         self.data = {}
         self.lastUpdate = 0
+
+    def getUniqueId(self, field):
+        return "renac_" + field + "_" + self.equipSn
 
     def fetch(self, field):
         if self.token == None:
             _LOGGER.info("Token is null, new fresh login sequence required")
             loginResponse = login(self.config.get(CONF_USERNAME), self.config.get(CONF_PASSWORD))
             self.emailSn = loginResponse['email']
-            self.equipSn = self.config.get(CONF_EQUIPSN)
             self.token = loginResponse['Token']
         if self.lastUpdate + 10 < time.time():
             req_json = {
@@ -47,7 +50,7 @@ class Updater():
             headers = { "Token" : self.token }
             r = requests.post(API_ROOT+'equipDetail', json=req_json, headers=headers)
             if r.status_code == 200:
-                if r.json()['results'] != "null":
+                if "results" in r.json():
                     self.lastUpdate = time.time()
                     self.data = r.json()['results']
                 else:
@@ -69,15 +72,15 @@ def setup_platform(
     conf = hass.data[DOMAIN]
     updater = Updater(conf)
     add_entities([
-        EnergySensor(updater, 'acPower', 'Generated'),
-        PowerSensor(updater, 'todayPower', "Today's"),
-        PowerSensor(updater, 'totalPower', "Total"),
+        PowerSensor(updater, 'acPower', 'Generated'),
+        ResetEnergySensor(updater, 'todayPower', "Today's"),
+        EnergySensor(updater, 'totalPower', "Total"),
         VoltageSensor(updater, 'PV1voltage', 'PV1'),
         VoltageSensor(updater, 'PV2voltage', 'PV2'),
         CurrentSensor(updater, 'PV1current', 'PV1'),
         CurrentSensor(updater, 'PV2current', 'PV2'),
-        EnergySensor(updater, 'PV1power', 'PV1'),
-        EnergySensor(updater, 'PV2power', 'PV2'),
+        PowerSensor(updater, 'PV1power', 'PV1'),
+        PowerSensor(updater, 'PV2power', 'PV2'),
         VoltageSensor(updater, 'Rvoltage', 'R'),
         VoltageSensor(updater, 'Svoltage', 'S'),
         VoltageSensor(updater, 'Tvoltage', 'T'),
@@ -103,11 +106,12 @@ def login(username, password):
         _LOGGER.error("Failed to login to renac : " + str(r.json()))
         raise("Failed to login")
 
-class EnergySensor(SensorEntity):
+class PowerSensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
         self.display_name = name
+        self._attr_unique_id = updater.getUniqueId(field)
         self._attr_name = name + "_Power"
         self._attr_native_unit_of_measurement = "W" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -120,14 +124,16 @@ class EnergySensor(SensorEntity):
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
 
-class PowerSensor(SensorEntity):
+class EnergySensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
         self.display_name = name
+        self._attr_unique_id = updater.getUniqueId(field)
         self._attr_name = name + " Power"
         self._attr_native_unit_of_measurement = "kWh" 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_device_class = SensorDeviceClass.ENERGY
     
     @property
     def name(self):
@@ -136,15 +142,39 @@ class PowerSensor(SensorEntity):
     def update(self) -> None:
         self._attr_native_value = self.updater.fetch(self.field)
 
+class ResetEnergySensor(SensorEntity):
+    def __init__(self, updater, field, name):
+        self.updater = updater
+        self.field = field
+        self.display_name = name
+        self._attr_unique_id = updater.getUniqueId(field)
+        self._attr_name = name + " Power"
+        self._attr_native_unit_of_measurement = "kWh" 
+        self._attr_state_class = SensorStateClass.TOTAL
+        self._attr_device_class = SensorDeviceClass.ENERGY
+        # reset each day at midnight
+        self._attr_last_reset = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    @property
+    def name(self):
+        return "Renac " + self.display_name + " Generated Power"
+    
+    def update(self) -> None:
+        self._attr_native_value = self.updater.fetch(self.field)
+        # reset each day at midnight
+        self._attr_last_reset = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
 
 class VoltageSensor(SensorEntity):
     def __init__(self, updater, field, name):
         self.updater = updater
         self.field = field
         self.display_name = name
+        self._attr_unique_id = updater.getUniqueId(field)
         self._attr_name = name + " Voltage" 
         self._attr_native_unit_of_measurement = "V" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_device_class = SensorDeviceClass.VOLTAGE
 
     @property
     def name(self):
@@ -158,9 +188,11 @@ class CurrentSensor(SensorEntity):
         self.updater = updater
         self.field = field
         self.display_name = name
+        self._attr_unique_id = updater.getUniqueId(field)
         self._attr_name =  name + " Current" 
         self._attr_native_unit_of_measurement = "A" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_device_class = SensorDeviceClass.CURRENT
 
     @property
     def name(self):
@@ -174,9 +206,11 @@ class FrequencySensor(SensorEntity):
         self.updater = updater
         self.field = field
         self.display_name = name
+        self._attr_unique_id = updater.getUniqueId(field)
         self._attr_name =  name + " Frequency" 
         self._attr_native_unit_of_measurement = "Hz" 
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_device_class = SensorDeviceClass.FREQUENCY
 
     @property
     def name(self):
