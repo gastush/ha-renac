@@ -1,5 +1,6 @@
 # ha-renac
 Home assistant custom component to support Renac Solar Inverter
+Only On-Grid type of Inverters (R3-xK-DT) are supported. The NV3-HV kind of Hybrid Inverter won't work.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)]([https://www.buymeacoffee.com/gastush](https://www.buymeacoffee.com/gastush))
 
