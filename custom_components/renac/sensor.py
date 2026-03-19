@@ -40,8 +40,11 @@ class Updater():
         if self.token == None:
             _LOGGER.info("Token is null, new fresh login sequence required")
             loginResponse = login(self.config.get(CONF_USERNAME), self.config.get(CONF_PASSWORD))
-            self.emailSn = loginResponse['email']
-            self.token = loginResponse['Token']
+            self.emailSn = loginResponse.get('email')
+            if not self.emailSn:
+                _LOGGER.error("Renac login failed. API token may be expired.")
+                return None
+            self.token = loginResponse.get('Token')
         if self.lastUpdate + 10 < time.time():
             req_json = {
                 "sn": self.equipSn,
