@@ -38,7 +38,7 @@ class Updater():
 
     def fetch(self, field):
         if self.token == None:
-            _LOGGER.info("Token is null, new fresh login sequence required")
+            _LOGGER.warn("Token is null, new fresh login sequence required")
             loginResponse = login(self.config.get(CONF_USERNAME), self.config.get(CONF_PASSWORD))
             self.emailSn = loginResponse.get('email')
             if not self.emailSn:
@@ -60,7 +60,9 @@ class Updater():
                     _LOGGER.info("Null results. assuming a new Token is required.")
                     self.token = None
             else:
-                raise("Failed to update sensor " + str(r.status_code))
+                _LOGGER.warning("Got failure response code " + str(r.status_code))
+                self.token = None
+                #raise("Failed to update sensor " + str(r.status_code))
 
         return self.data[field]
 
@@ -96,14 +98,15 @@ def setup_platform(
         ])
 
 def login(username, password):
-    _LOGGER.info("Requesting authorization...")
+    _LOGGER.warn("Requesting authorization...")
     req_json = {
         "loginName": username, 
         "password": password
     }
     r = requests.post(API_ROOT+'login', json=req_json)
     if r.status_code == 200:
-        _LOGGER.info("Got email id :" + str(r.json()['email']))
+        _LOGGER.warn("Login to renac : " + str(r.json()))
+        _LOGGER.info("Got email id :" + str(r.json().get('email')))
         return r.json()
     else:
         _LOGGER.error("Failed to login to renac : " + str(r.json()))
