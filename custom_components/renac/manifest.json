@@ -1,6 +1,7 @@
 {
   "domain": "renac",
   "name": "Renac Inverter",
+  "config_flow": true,
   "codeowners": ["ghelin"],
   "documentation": "https://github.com/gastush/ha-renac",
   "iot_class": "cloud_polling",
