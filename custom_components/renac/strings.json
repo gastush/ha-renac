@@ -1,0 +1,100 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "equipment_serial": "Serial"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "totalPower": {
+        "name": "Total Generated Power"
+      },
+      "todayPower": {
+        "name": "Today's Generated Power"
+      },
+      "acPower": {
+        "name": "Generated Powwer"
+      },
+      "PV1voltage": {
+        "name": "PV1 Voltage"
+      },
+      "PV2voltage": {
+        "name": "PV2 Voltage"
+      },
+      "PV1current": {
+        "name": "PV1 Current"
+      },
+      "PV2current": {
+        "name": "PV2 Current"
+      },
+      "PV1power": {
+        "name": "PV1 Power"
+      },
+      "PV2power": {
+        "name": "PV2 Power"
+      },
+      "Rvoltage": {
+        "name": "R Voltage"
+      },
+      "Svoltage": {
+        "name": "S Voltage"
+      },
+      "Tvoltage": {
+        "name": "T Voltage"
+      },
+      "Rcurrent": {
+        "name": "R Current"
+      },
+      "Scurrent": {
+        "name": "S Current"
+      },
+      "Tcurrent": {
+        "name": "T Current"
+      },
+      "Rfrequency": {
+        "name": "R Frequency"
+      },
+      "Sfrequency": {
+        "name": "S Frequency"
+      },
+      "Tfrequency": {
+        "name": "T Frequency"
+      },
+      "LOAD": {
+        "name": "Load"
+      },
+      "PV": {
+        "name": "PV"
+      },
+      "BAT": {
+        "name": "Battery"
+      },
+      "GRID": {
+        "name": "Grid"
+      },
+      "CAPACITY_CHARGE": {
+        "name": "SOC"
+      },
+      "ENERGY_TODAY": {
+        "name": "Today"
+      },
+      "ENERGY_TOTAL": {
+        "name": "Total"
+      }
+    }
+  }
+}

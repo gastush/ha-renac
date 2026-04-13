@@ -1,0 +1,100 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "equipment_serial": "Serial",
+                    "password": "Password",
+                    "username": "Username"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "BAT": {
+                "name": "Battery"
+            },
+            "CAPACITY_CHARGE": {
+                "name": "SOC"
+            },
+            "ENERGY_TODAY": {
+                "name": "Today"
+            },
+            "ENERGY_TOTAL": {
+                "name": "Total"
+            },
+            "GRID": {
+                "name": "Grid"
+            },
+            "LOAD": {
+                "name": "Load"
+            },
+            "PV": {
+                "name": "PV"
+            },
+            "PV1current": {
+                "name": "PV1 Current"
+            },
+            "PV1power": {
+                "name": "PV1 Power"
+            },
+            "PV1voltage": {
+                "name": "PV1 Voltage"
+            },
+            "PV2current": {
+                "name": "PV2 Current"
+            },
+            "PV2power": {
+                "name": "PV2 Power"
+            },
+            "PV2voltage": {
+                "name": "PV2 Voltage"
+            },
+            "Rcurrent": {
+                "name": "R Current"
+            },
+            "Rfrequency": {
+                "name": "R Frequency"
+            },
+            "Rvoltage": {
+                "name": "R Voltage"
+            },
+            "Scurrent": {
+                "name": "S Current"
+            },
+            "Sfrequency": {
+                "name": "S Frequency"
+            },
+            "Svoltage": {
+                "name": "S Voltage"
+            },
+            "Tcurrent": {
+                "name": "T Current"
+            },
+            "Tfrequency": {
+                "name": "T Frequency"
+            },
+            "Tvoltage": {
+                "name": "T Voltage"
+            },
+            "acPower": {
+                "name": "Generated Powwer"
+            },
+            "todayPower": {
+                "name": "Today's Generated Power"
+            },
+            "totalPower": {
+                "name": "Total Generated Power"
+            }
+        }
+    }
+}

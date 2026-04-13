@@ -1,0 +1,21 @@
+sync_recorder:
+  name: Sync Recorder data
+  description: >-
+    Synchronise the Recorder data over the given date range.
+    !!! Use this at your own risk. There is a high chance (lie 99,9%) that you
+    will mess-up completely your current and/or future statistics...
+  fields:
+    start:
+      name: start
+      description: The Start date of the data to be sync
+      required: true
+      example: "2024-03-09"
+      selector:
+        date:
+    end:
+      name: end
+      description: The End date of the data to be sync
+      required: true
+      example: "2024-04-09"
+      selector:
+        date:
