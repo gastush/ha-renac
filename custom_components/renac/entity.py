@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
-from .pyrenac import PyRenac, RenacInverterData
+from pyrenac import PyRenac, RenacInverterData
 
 import threading
 from concurrent.futures import ThreadPoolExecutor

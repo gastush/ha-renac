@@ -27,7 +27,7 @@ from . import RenacData
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
 from .entity import RenacEntity
-from .pyrenac import InverterType, PyRenac
+from pyrenac import InverterType, PyRenac
 
 _LOGGER = logging.getLogger(__name__)
 

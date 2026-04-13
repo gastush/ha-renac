@@ -10,7 +10,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .pyrenac import PyRenac
+from pyrenac import PyRenac
 
 _LOGGER = logging.getLogger(__name__)
 

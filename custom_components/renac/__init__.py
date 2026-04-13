@@ -17,7 +17,7 @@ from homeassistant.helpers import config_validation as cv
 
 from .const import CONF_EQUIPSN, DOMAIN
 from .coordinator import RenacCoordinator
-from .pyrenac import PyRenac
+from pyrenac import PyRenac
 
 PLATFORMS = [
     Platform.SENSOR,

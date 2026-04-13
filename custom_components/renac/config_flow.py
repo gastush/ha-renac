@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
-from .pyrenac import PyRenac
+from pyrenac import PyRenac
 
 _LOGGER = logging.getLogger(__name__)
 
