@@ -1,226 +1,332 @@
-"""Platform for sensor integration."""
+"""Sensor data of the Renac inverter."""
+
 from __future__ import annotations
 
-from homeassistant.components.sensor import (
-    SensorEntity,
-    SensorStateClass,
-    SensorDeviceClass,
-)
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from dataclasses import dataclass
 from datetime import datetime
-import time
-import requests
 import logging
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
+    UnitOfPower,
+)
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from . import RenacData
+from .const import DOMAIN
+from .coordinator import RenacCoordinator
+from .entity import RenacEntity
+from pyrenac import InverterType, PyRenac
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "renac"
 
-CONF_USERNAME = "username"
-CONF_PASSWORD = "password"
-CONF_EQUIPSN = "equipment_serial"
+@dataclass(frozen=True, kw_only=True)
+class RenacSensorEntityDescription(SensorEntityDescription):
+    """Description of a Renac sensor."""
 
-API_ROOT = "https://sec.bg.renacpower.cn:8084/api/"
+    raw_format: bool
+    daily_reset: bool
 
-class Updater():
-    def __init__(self, conf):
-        self.config = conf
-        self.emailSn = None
-        self.equipSn = self.config.get(CONF_EQUIPSN)
-        self.token = None
-        self.data = {}
-        self.lastUpdate = 0
 
-    def getUniqueId(self, field):
-        return "renac_" + field + "_" + self.equipSn
+ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
+    RenacSensorEntityDescription(
+        key="totalPower",
+        translation_key="totalPower",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="todayPower",
+        translation_key="todayPower",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        key="acPower",
+        translation_key="acPower",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV1voltage",
+        translation_key="PV1voltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV2voltage",
+        translation_key="PV2voltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV1current",
+        translation_key="PV1current",
+        raw_format=True,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV2current",
+        translation_key="PV2current",
+        raw_format=True,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV1power",
+        translation_key="PV1power",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV2power",
+        translation_key="PV2power",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Rvoltage",
+        translation_key="Rvoltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Svoltage",
+        translation_key="Svoltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Tvoltage",
+        translation_key="Tvoltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Rcurrent",
+        translation_key="Rcurrent",
+        raw_format=True,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Scurrent",
+        translation_key="Scurrent",
+        raw_format=True,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Tcurrent",
+        translation_key="Tcurrent",
+        raw_format=True,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Rfrequency",
+        translation_key="Rfrequency",
+        raw_format=True,
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Sfrequency",
+        translation_key="Sfrequency",
+        raw_format=True,
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="Tfrequency",
+        translation_key="Tfrequency",
+        raw_format=True,
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        daily_reset=False,
+    ),
+)
 
-    def fetch(self, field):
-        if self.token == None:
-            _LOGGER.warn("Token is null, new fresh login sequence required")
-            loginResponse = login(self.config.get(CONF_USERNAME), self.config.get(CONF_PASSWORD))
-            self.emailSn = loginResponse.get('email')
-            if not self.emailSn:
-                _LOGGER.error("Renac login failed. API token may be expired.")
-                return None
-            self.token = loginResponse.get('Token')
-        if self.lastUpdate + 10 < time.time():
-            req_json = {
-                "sn": self.equipSn,
-                "email": self.emailSn
-            }
-            headers = { "Token" : self.token }
-            r = requests.post(API_ROOT+'equipDetail', json=req_json, headers=headers)
-            if r.status_code == 200:
-                if "results" in r.json():
-                    self.lastUpdate = time.time()
-                    self.data = r.json()['results']
-                else:
-                    _LOGGER.info("Null results. assuming a new Token is required.")
-                    self.token = None
-            else:
-                _LOGGER.warning("Got failure response code " + str(r.status_code))
-                self.token = None
-                #raise("Failed to update sensor " + str(r.status_code))
+HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
+    RenacSensorEntityDescription(
+        key="ENERGY_TOTAL",
+        translation_key="ENERGY_TOTAL",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="ENERGY_TODAY",
+        translation_key="ENERGY_TODAY",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        key="Load",
+        translation_key="Load",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="PV",
+        translation_key="PV",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="BAT",
+        translation_key="BAT",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="GRID",
+        translation_key="GRID",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        key="CAPACITY_CHARGE",
+        translation_key="CAPACITY_CHARGE",
+        raw_format=True,
+        device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement="%",
+        daily_reset=False,
+    ),
+)
 
-        return self.data[field]
 
-def setup_platform(
+class RenacSensor(RenacEntity, SensorEntity):
+    """Get a sensor data from the Renson API and store it in the state of the class."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        description: RenacSensorEntityDescription,
+        api: PyRenac,
+        coordinator: RenacCoordinator,
+    ) -> None:
+        """Initialize class."""
+        super().__init__(description.key, api, coordinator)
+        _LOGGER.info("Creating Sensor %s", description.key)
+        self.field = description.key
+        self.entity_description = description
+        self.daily_reset = description.daily_reset
+        self.raw_format = description.raw_format
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        all_data = self.coordinator.data
+
+        value = self.api.fetch_field_value(all_data, self.field)
+        self._attr_native_value = value
+        if self.daily_reset:
+            self._attr_last_reset = datetime.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+
+        self.async_write_ha_state()
+
+
+async def async_setup_entry(
     hass: HomeAssistant,
-    config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
-    _LOGGER.info("Init...")
-    conf = hass.data[DOMAIN]
-    updater = Updater(conf)
-    add_entities([
-        PowerSensor(updater, 'acPower', 'Generated'),
-        ResetEnergySensor(updater, 'todayPower', "Today's"),
-        EnergySensor(updater, 'totalPower', "Total"),
-        VoltageSensor(updater, 'PV1voltage', 'PV1'),
-        VoltageSensor(updater, 'PV2voltage', 'PV2'),
-        CurrentSensor(updater, 'PV1current', 'PV1'),
-        CurrentSensor(updater, 'PV2current', 'PV2'),
-        PowerSensor(updater, 'PV1power', 'PV1'),
-        PowerSensor(updater, 'PV2power', 'PV2'),
-        VoltageSensor(updater, 'Rvoltage', 'R'),
-        VoltageSensor(updater, 'Svoltage', 'S'),
-        VoltageSensor(updater, 'Tvoltage', 'T'),
-        CurrentSensor(updater, 'Rcurrent', 'R'),
-        CurrentSensor(updater, 'Scurrent', 'S'),
-        CurrentSensor(updater, 'Tcurrent', 'T'),
-        FrequencySensor(updater, 'Rfrequency', 'R'),
-        FrequencySensor(updater, 'Sfrequency', 'S'),
-        FrequencySensor(updater, 'Tfrequency', 'T')
-        ])
+    """Set up the Renson sensor platform."""
 
-def login(username, password):
-    _LOGGER.warn("Requesting authorization...")
-    req_json = {
-        "loginName": username, 
-        "password": password
-    }
-    r = requests.post(API_ROOT+'login', json=req_json)
-    if r.status_code == 200:
-        _LOGGER.warn("Login to renac : " + str(r.json()))
-        _LOGGER.info("Got email id :" + str(r.json().get('email')))
-        return r.json()
+    _LOGGER.info("Setup entries")
+    data: RenacData = hass.data[DOMAIN][config_entry.entry_id]
+
+    if data.api.getType(data.coordinator.data) == InverterType.ONGRID:
+        _LOGGER.info("On Grid inverter entries")
+        entities = [
+            RenacSensor(description, data.api, data.coordinator)
+            for description in ONGRID_SENSORS
+        ]
     else:
-        _LOGGER.error("Failed to login to renac : " + str(r.json()))
-        raise("Failed to login")
+        _LOGGER.info("Hybrid inverter entries")
+        entities = [
+            RenacSensor(description, data.api, data.coordinator)
+            for description in HYBRID_SENSORS
+        ]
 
-class PowerSensor(SensorEntity):
-    def __init__(self, updater, field, name):
-        self.updater = updater
-        self.field = field
-        self.display_name = name
-        self._attr_unique_id = updater.getUniqueId(field)
-        self._attr_name = name + "_Power"
-        self._attr_native_unit_of_measurement = "W" 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_device_class = SensorDeviceClass.POWER
-    
-    @property
-    def name(self):
-        return "Renac " + self.display_name + " Power"
-    
-    def update(self) -> None:
-        self._attr_native_value = self.updater.fetch(self.field)
-
-class EnergySensor(SensorEntity):
-    def __init__(self, updater, field, name):
-        self.updater = updater
-        self.field = field
-        self.display_name = name
-        self._attr_unique_id = updater.getUniqueId(field)
-        self._attr_name = name + " Power"
-        self._attr_native_unit_of_measurement = "kWh" 
-        self._attr_state_class = SensorStateClass.TOTAL
-        self._attr_device_class = SensorDeviceClass.ENERGY
-    
-    @property
-    def name(self):
-        return "Renac " + self.display_name + " Generated Power"
-    
-    def update(self) -> None:
-        self._attr_native_value = self.updater.fetch(self.field)
-
-class ResetEnergySensor(SensorEntity):
-    def __init__(self, updater, field, name):
-        self.updater = updater
-        self.field = field
-        self.display_name = name
-        self._attr_unique_id = updater.getUniqueId(field)
-        self._attr_name = name + " Power"
-        self._attr_native_unit_of_measurement = "kWh" 
-        self._attr_state_class = SensorStateClass.TOTAL
-        self._attr_device_class = SensorDeviceClass.ENERGY
-        # reset each day at midnight
-        self._attr_last_reset = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    @property
-    def name(self):
-        return "Renac " + self.display_name + " Generated Power"
-    
-    def update(self) -> None:
-        self._attr_native_value = self.updater.fetch(self.field)
-        # reset each day at midnight
-        self._attr_last_reset = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-class VoltageSensor(SensorEntity):
-    def __init__(self, updater, field, name):
-        self.updater = updater
-        self.field = field
-        self.display_name = name
-        self._attr_unique_id = updater.getUniqueId(field)
-        self._attr_name = name + " Voltage" 
-        self._attr_native_unit_of_measurement = "V" 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_device_class = SensorDeviceClass.VOLTAGE
-
-    @property
-    def name(self):
-        return "Renac " + self.display_name + " Voltage"
-
-    def update(self) -> None:
-        self._attr_native_value = self.updater.fetch(self.field)
-
-class CurrentSensor(SensorEntity):
-    def __init__(self, updater, field, name):
-        self.updater = updater
-        self.field = field
-        self.display_name = name
-        self._attr_unique_id = updater.getUniqueId(field)
-        self._attr_name =  name + " Current" 
-        self._attr_native_unit_of_measurement = "A" 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_device_class = SensorDeviceClass.CURRENT
-
-    @property
-    def name(self):
-        return "Renac " + self.display_name + " Current"
-
-    def update(self) -> None:
-        self._attr_native_value = self.updater.fetch(self.field)
-
-class FrequencySensor(SensorEntity):
-    def __init__(self, updater, field, name):
-        self.updater = updater
-        self.field = field
-        self.display_name = name
-        self._attr_unique_id = updater.getUniqueId(field)
-        self._attr_name =  name + " Frequency" 
-        self._attr_native_unit_of_measurement = "Hz" 
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_device_class = SensorDeviceClass.FREQUENCY
-
-    @property
-    def name(self):
-        return "Renac " + self.display_name + " Frequency"
-
-    def update(self) -> None:
-        self._attr_native_value = self.updater.fetch(self.field)
+    async_add_entities(entities, update_before_add=True)
