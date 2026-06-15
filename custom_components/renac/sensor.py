@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 
+from pyrenac import InverterType, PyRenac
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -27,7 +29,6 @@ from . import RenacData
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
 from .entity import RenacEntity
-from pyrenac import InverterType, PyRenac
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,10 +39,12 @@ class RenacSensorEntityDescription(SensorEntityDescription):
 
     raw_format: bool
     daily_reset: bool
+    internal_key: str
 
 
 ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
     RenacSensorEntityDescription(
+        internal_key="SUM_ENERGY",
         key="totalPower",
         translation_key="totalPower",
         raw_format=True,
@@ -51,6 +54,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="DAY_ENERGY",
         key="todayPower",
         translation_key="todayPower",
         raw_format=True,
@@ -60,6 +64,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=True,
     ),
     RenacSensorEntityDescription(
+        internal_key="OUTPUT_POWER",
         key="acPower",
         translation_key="acPower",
         raw_format=True,
@@ -69,6 +74,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV1_VOL",
         key="PV1voltage",
         translation_key="PV1voltage",
         raw_format=True,
@@ -78,6 +84,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV2_VOL",
         key="PV2voltage",
         translation_key="PV2voltage",
         raw_format=True,
@@ -87,6 +94,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV1_CUR",
         key="PV1current",
         translation_key="PV1current",
         raw_format=True,
@@ -96,6 +104,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV2_CUR",
         key="PV2current",
         translation_key="PV2current",
         raw_format=True,
@@ -105,6 +114,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV1_POWER",
         key="PV1power",
         translation_key="PV1power",
         raw_format=True,
@@ -114,6 +124,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV2_POWER",
         key="PV2power",
         translation_key="PV2power",
         raw_format=True,
@@ -123,6 +134,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="R_VOL",
         key="Rvoltage",
         translation_key="Rvoltage",
         raw_format=True,
@@ -132,6 +144,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="S_VOL",
         key="Svoltage",
         translation_key="Svoltage",
         raw_format=True,
@@ -141,6 +154,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="T_VOL",
         key="Tvoltage",
         translation_key="Tvoltage",
         raw_format=True,
@@ -150,6 +164,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="R_CUR",
         key="Rcurrent",
         translation_key="Rcurrent",
         raw_format=True,
@@ -159,6 +174,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="S_CUR",
         key="Scurrent",
         translation_key="Scurrent",
         raw_format=True,
@@ -168,6 +184,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="T_CUR",
         key="Tcurrent",
         translation_key="Tcurrent",
         raw_format=True,
@@ -177,6 +194,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="R_FRE",
         key="Rfrequency",
         translation_key="Rfrequency",
         raw_format=True,
@@ -186,6 +204,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="S_FRE",
         key="Sfrequency",
         translation_key="Sfrequency",
         raw_format=True,
@@ -195,6 +214,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="T_FRE",
         key="Tfrequency",
         translation_key="Tfrequency",
         raw_format=True,
@@ -207,6 +227,7 @@ ONGRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
 
 HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
     RenacSensorEntityDescription(
+        internal_key="ENERGY_TOTAL",
         key="ENERGY_TOTAL",
         translation_key="ENERGY_TOTAL",
         raw_format=True,
@@ -216,6 +237,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="ENERGY_TODAY",
         key="ENERGY_TODAY",
         translation_key="ENERGY_TODAY",
         raw_format=True,
@@ -225,6 +247,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=True,
     ),
     RenacSensorEntityDescription(
+        internal_key="Load",
         key="Load",
         translation_key="Load",
         raw_format=True,
@@ -234,6 +257,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="PV",
         key="PV",
         translation_key="PV",
         raw_format=True,
@@ -243,6 +267,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="BAT",
         key="BAT",
         translation_key="BAT",
         raw_format=True,
@@ -252,6 +277,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="GRID",
         key="GRID",
         translation_key="GRID",
         raw_format=True,
@@ -261,6 +287,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
+        internal_key="CAPACITY_CHARGE",
         key="CAPACITY_CHARGE",
         translation_key="CAPACITY_CHARGE",
         raw_format=True,
@@ -290,13 +317,14 @@ class RenacSensor(RenacEntity, SensorEntity):
         self.entity_description = description
         self.daily_reset = description.daily_reset
         self.raw_format = description.raw_format
+        self.internal_key = description.internal_key
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         all_data = self.coordinator.data
 
-        value = self.api.fetch_field_value(all_data, self.field)
+        value = self.api.fetch_field_value(all_data, self.internal_key)
         self._attr_native_value = value
         if self.daily_reset:
             self._attr_last_reset = datetime.now().replace(

@@ -3,6 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
+import threading
+from typing import Any, TypeVar
+from collections.abc import Coroutine
+
+from pyrenac import PyRenac, RenacInverterData
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -10,11 +16,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
-from pyrenac import PyRenac, RenacInverterData
-
-import threading
-from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Coroutine, TypeVar
 
 __all__ = [
     "run_coroutine_sync",
