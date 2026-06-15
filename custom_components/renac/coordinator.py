@@ -22,7 +22,7 @@ class RenacCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         name: str,
         hass: HomeAssistant,
-        api: PyRenac,
+        api: pyrenac.PyRenac,
         update_interval=timedelta(seconds=30),
     ) -> None:
         """Initialize my coordinator."""
@@ -39,4 +39,4 @@ class RenacCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint."""
         async with asyncio.timeout(60):
-            return await self.api.async_fetch_all()
+            return await self.api.async_fetch_all("im")

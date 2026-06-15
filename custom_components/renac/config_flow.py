@@ -44,7 +44,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # throw CannotConnect
     # If the authentication is wrong:
     # InvalidAuth
-    model = await api_client.async_fetch("model")
+    model = await api_client.async_fetch("equ_MODEL_NAME", "inv")
 
     # Return info that you want to store in the config entry.
     return {"title": model}
