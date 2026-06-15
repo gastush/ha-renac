@@ -7,5 +7,5 @@
   "iot_class": "cloud_polling",
   "version": "0.2.0",
   "loggers": ["custom_components.renac"],
-  "requirements": ["requests", "aiohttp", "pyrenac>=0.1.0"]
+  "requirements": ["requests", "aiohttp", "pyrenac>=0.1.1"]
 }
