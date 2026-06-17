@@ -324,12 +324,20 @@ class RenacSensor(RenacEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         all_data = self.coordinator.data
 
-        value = self.api.fetch_field_value(all_data, self.internal_key)
-        self._attr_native_value = value
         if self.daily_reset:
-            self._attr_last_reset = datetime.now().replace(
+            last_upload = self.api.fetch_field_value(all_data, "UPLOAD_TIME")
+            # Only consider the update if it was uploaded on the same day.
+            if datetime.fromisoformat(last_upload) >= datetime.now().replace(
                 hour=0, minute=0, second=0, microsecond=0
-            )
+            ):
+                value = self.api.fetch_field_value(all_data, self.internal_key)
+                self._attr_native_value = value
+                self._attr_last_reset = datetime.fromisoformat(last_upload).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                )
+        else:
+            value = self.api.fetch_field_value(all_data, self.internal_key)
+            self._attr_native_value = value
 
         self.async_write_ha_state()
 

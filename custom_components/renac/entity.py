@@ -62,7 +62,7 @@ class RenacEntity(CoordinatorEntity[RenacCoordinator]):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, api.getSerial())},
             manufacturer="Renac",
-            model=api.fetch_field_value(coordinator.data, "model"),
+            model=data.model,
             name=data.name,
             hw_version=data.fwversion,
             serial_number=api.getSerial(),
