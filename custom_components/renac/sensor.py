@@ -237,7 +237,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
-        internal_key="ENERGY_TODAY",
+        internal_key="ENERGY_DAY",
         key="ENERGY_TODAY",
         translation_key="ENERGY_TODAY",
         raw_format=True,
@@ -247,7 +247,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=True,
     ),
     RenacSensorEntityDescription(
-        internal_key="Load",
+        internal_key="POWER_LOAD",
         key="Load",
         translation_key="Load",
         raw_format=True,
@@ -257,7 +257,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
-        internal_key="PV",
+        internal_key="PV_POWER_TOTAL",
         key="PV",
         translation_key="PV",
         raw_format=True,
@@ -267,7 +267,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
-        internal_key="BAT",
+        internal_key="BATTERY1_POWER",
         key="BAT",
         translation_key="BAT",
         raw_format=True,
@@ -277,7 +277,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
-        internal_key="GRID",
+        internal_key="GRID_POWER",
         key="GRID",
         translation_key="GRID",
         raw_format=True,
@@ -287,7 +287,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         daily_reset=False,
     ),
     RenacSensorEntityDescription(
-        internal_key="CAPACITY_CHARGE",
+        internal_key="BATTERY1_CAPACITY",
         key="CAPACITY_CHARGE",
         translation_key="CAPACITY_CHARGE",
         raw_format=True,
