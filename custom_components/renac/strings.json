@@ -94,6 +94,62 @@
       },
       "ENERGY_TOTAL": {
         "name": "Total"
+      },
+      "BatteryVoltage": {
+        "name": "Battery Voltage"
+      },
+      "BatteryCurrent": {
+        "name": "Battery Current"
+      },
+      "BatteryTemperature": {
+        "name": "Battery Temperature"
+      },
+      "BatteryChargeToday": {
+        "name": "Battery Charged Today"
+      },
+      "BatteryDischargeToday": {
+        "name": "Battery Discharged Today"
+      },
+      "GridVoltage": {
+        "name": "Grid Voltage"
+      },
+      "GridFrequency": {
+        "name": "Grid Frequency"
+      },
+      "GridFeedInToday": {
+        "name": "Grid Feed-in Today"
+      },
+      "GridConsumptionToday": {
+        "name": "Grid Consumption Today"
+      },
+      "EPSPower": {
+        "name": "Backup Power (EPS)"
+      },
+      "EPSEnergyToday": {
+        "name": "Backup Energy Today (EPS)"
+      },
+      "InverterTemperature": {
+        "name": "Inverter Temperature"
+      },
+      "InverterState": {
+        "name": "Inverter State"
+      },
+      "FaultMessage": {
+        "name": "Fault Message"
+      }
+    },
+    "binary_sensor": {
+      "MeterConnected": {
+        "name": "Meter Connected"
+      },
+      "BMSConnected": {
+        "name": "BMS Connected"
+      },
+      "ChargeForbidden": {
+        "name": "Charging Forbidden"
+      },
+      "DischargeForbidden": {
+        "name": "Discharging Forbidden"
       }
     }
   }

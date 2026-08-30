@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 
-from pyrenac import InverterType, PyRenac
-
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -16,16 +14,19 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    EntityCategory,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import RenacData
+from .api import InverterType, PyRenac
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
 from .entity import RenacEntity
@@ -249,7 +250,7 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
     RenacSensorEntityDescription(
         internal_key="POWER_LOAD",
         key="Load",
-        translation_key="Load",
+        translation_key="LOAD",
         raw_format=True,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
@@ -295,6 +296,143 @@ HYBRID_SENSORS: tuple[RenacSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="%",
         daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="BATTERY1_VOL",
+        key="BatteryVoltage",
+        translation_key="BatteryVoltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="BATTERY1_CUR",
+        key="BatteryCurrent",
+        translation_key="BatteryCurrent",
+        raw_format=True,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="BATTERY1_TEMP",
+        key="BatteryTemperature",
+        translation_key="BatteryTemperature",
+        raw_format=True,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="BATTERY1_CHARGE_ENERGY_DAY",
+        key="BatteryChargeToday",
+        translation_key="BatteryChargeToday",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="BATTERY1_DISCHARGE_ENERGY_DAY",
+        key="BatteryDischargeToday",
+        translation_key="BatteryDischargeToday",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="GRID_VOL",
+        key="GridVoltage",
+        translation_key="GridVoltage",
+        raw_format=True,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="GRID_FRE",
+        key="GridFrequency",
+        translation_key="GridFrequency",
+        raw_format=True,
+        device_class=SensorDeviceClass.FREQUENCY,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfFrequency.HERTZ,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="METER_FEEDIN_DAY",
+        key="GridFeedInToday",
+        translation_key="GridFeedInToday",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="METER_CONSUM_DAY",
+        key="GridConsumptionToday",
+        translation_key="GridConsumptionToday",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="EPS_POWER",
+        key="EPSPower",
+        translation_key="EPSPower",
+        raw_format=True,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        daily_reset=False,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="EPS_ENERGY_DAY",
+        key="EPSEnergyToday",
+        translation_key="EPSEnergyToday",
+        raw_format=True,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        daily_reset=True,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="INV_TEMPERATURE",
+        key="InverterTemperature",
+        translation_key="InverterTemperature",
+        raw_format=True,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        daily_reset=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="Inverter_State",
+        key="InverterState",
+        translation_key="InverterState",
+        raw_format=True,
+        daily_reset=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    RenacSensorEntityDescription(
+        internal_key="INV_FAULT_MESSAGE",
+        key="FaultMessage",
+        translation_key="FaultMessage",
+        raw_format=True,
+        daily_reset=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
 
