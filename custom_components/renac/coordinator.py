@@ -10,7 +10,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from pyrenac import PyRenac
+from .api import PyRenac
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,8 +22,12 @@ class RenacCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         name: str,
         hass: HomeAssistant,
-        api: pyrenac.PyRenac,
-        update_interval=timedelta(seconds=30),
+        api: PyRenac,
+        # The RENAC Cloud API's rate limits are undocumented; 5-10 minute
+        # polling intervals are known to be safe from manual testing, while
+        # rapid repeated requests have been observed to trigger an
+        # undocumented error response. 30s was too aggressive.
+        update_interval=timedelta(minutes=5),
     ) -> None:
         """Initialize my coordinator."""
         super().__init__(
