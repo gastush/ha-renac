@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 
+from pyrenac import InverterType, PyRenac
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -26,7 +28,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import RenacData
-from .api import InverterType, PyRenac
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
 from .entity import RenacEntity

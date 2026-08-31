@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 
+from pyrenac import InverterType, PyRenac
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -16,7 +18,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import RenacData
-from .api import InverterType, PyRenac
 from .const import DOMAIN
 from .coordinator import RenacCoordinator
 from .entity import RenacEntity

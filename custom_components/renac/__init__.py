@@ -15,9 +15,9 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform, UnitOfEn
 from homeassistant.core import HomeAssistant, ServiceCall, valid_entity_id
 from homeassistant.helpers import config_validation as cv
 
-from .api import PyRenac
 from .const import CONF_EQUIPSN, DOMAIN
 from .coordinator import RenacCoordinator
+from pyrenac import PyRenac
 
 PLATFORMS = [
     Platform.SENSOR,
