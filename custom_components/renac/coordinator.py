@@ -22,8 +22,11 @@ class RenacCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         name: str,
         hass: HomeAssistant,
-        api: pyrenac.PyRenac,
-        update_interval=timedelta(seconds=30),
+        api: PyRenac,
+        # The RENAC Cloud API's rate limits are undocumented; 5-10 minute
+        # polling intervals are known from manual testing to be safe.
+        # Shorter intervals are untested, so 30s felt unnecessarily risky.
+        update_interval=timedelta(minutes=5),
     ) -> None:
         """Initialize my coordinator."""
         super().__init__(

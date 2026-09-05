@@ -21,6 +21,7 @@ from pyrenac import PyRenac
 
 PLATFORMS = [
     Platform.SENSOR,
+    Platform.BINARY_SENSOR,
 ]
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,7 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         current_sum = float(0)
         last_state = float(0)
         for single_date in daterange(call.data["start"], call.data["end"]):
-            historical_data = await api.get_historical_data(single_date)
+            historical_data = await api.async_get_historical_data(single_date)
             if historical_data is not None:
                 _LOGGER.info(
                     "Got %d historical data for day %s",

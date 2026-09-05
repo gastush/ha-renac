@@ -14,6 +14,23 @@ The session management should also be a bit more robust. The whole logic to inte
 This version also includes a service to sync the recorder data (to fix wrong/missing long term statistics). So far all my attempts where rather unsuccessful in the way that the imported data looked good, but all subsequent data were broken... so don't use it unless you want to break everything have have to fix the recorder database by hand...
 
 
+## ⚠️ Known Limitations
+
+- The hybrid inverter changes in this PR (expanded sensors, new
+  `binary_sensor` platform) were verified live against an N3-HV-10.0
+  hybrid inverter only. They rely on two fixes to the `pyrenac` package
+  itself - correct hybrid-inverter detection and a missing signature
+  header - proposed separately in
+  [gastush/pyrenac#4](https://github.com/gastush/pyrenac/pull/4). Until
+  that's merged and released, hybrid inverters still won't be detected
+  correctly even with this PR applied.
+- The on-grid sensor field names (`SUM_ENERGY`, `OUTPUT_POWER`,
+  `PV1_VOL`, etc. in `ONGRID_SENSORS`) were left untouched and have
+  **not** been re-verified against the current RENAC Cloud API - given
+  the API has changed multiple times (see #21, #26), they may or may not
+  still be accurate. Reports from on-grid owners testing against current
+  hardware are very welcome.
+
 ## 🛠️ Installation
 
 ### Method 1: HACS (Recommended)

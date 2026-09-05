@@ -23,8 +23,29 @@
             "BAT": {
                 "name": "Battery"
             },
+            "BatteryChargeToday": {
+                "name": "Battery Charged Today"
+            },
+            "BatteryCurrent": {
+                "name": "Battery Current"
+            },
+            "BatteryDischargeToday": {
+                "name": "Battery Discharged Today"
+            },
+            "BatteryTemperature": {
+                "name": "Battery Temperature"
+            },
+            "BatteryVoltage": {
+                "name": "Battery Voltage"
+            },
             "CAPACITY_CHARGE": {
                 "name": "SOC"
+            },
+            "EPSEnergyToday": {
+                "name": "Backup Energy Today (EPS)"
+            },
+            "EPSPower": {
+                "name": "Backup Power (EPS)"
             },
             "ENERGY_TODAY": {
                 "name": "Today"
@@ -32,8 +53,29 @@
             "ENERGY_TOTAL": {
                 "name": "Total"
             },
+            "FaultMessage": {
+                "name": "Fault Message"
+            },
             "GRID": {
                 "name": "Grid"
+            },
+            "GridConsumptionToday": {
+                "name": "Grid Consumption Today"
+            },
+            "GridFeedInToday": {
+                "name": "Grid Feed-in Today"
+            },
+            "GridFrequency": {
+                "name": "Grid Frequency"
+            },
+            "GridVoltage": {
+                "name": "Grid Voltage"
+            },
+            "InverterState": {
+                "name": "Inverter State"
+            },
+            "InverterTemperature": {
+                "name": "Inverter Temperature"
             },
             "LOAD": {
                 "name": "Load"
@@ -94,6 +136,20 @@
             },
             "totalPower": {
                 "name": "Total Generated Power"
+            }
+        },
+        "binary_sensor": {
+            "BMSConnected": {
+                "name": "BMS Connected"
+            },
+            "ChargeForbidden": {
+                "name": "Charging Forbidden"
+            },
+            "DischargeForbidden": {
+                "name": "Discharging Forbidden"
+            },
+            "MeterConnected": {
+                "name": "Meter Connected"
             }
         }
     }
